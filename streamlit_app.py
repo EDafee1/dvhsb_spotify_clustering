@@ -122,6 +122,8 @@ def getPlaylistItems(token, playlistId):
                          "speechiness", "acousticness", "instrumentalness", "liveness", "valence", "tempo"])
         writer.writerows(dataset3)
 
+    dataProcessing()
+
 token = getToken() 
 print('access token : '+token) 
 getPlaylistItems(token, playlistId)
