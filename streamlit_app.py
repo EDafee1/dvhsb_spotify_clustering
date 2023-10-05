@@ -137,22 +137,22 @@ from sklearn.decomposition import PCA
 import plotly.express as px 
 
 data = pd.read_csv('dataset.csv')
-# data.head()
+data.head()
 
 data['artist'] = data['artist'].map(lambda x: str(x)[2:-1])
 data['name'] = data['name'].map(lambda x: str(x)[2:-1])
 
-# data.head()
+data.head()
 
 data = data[data['name'] != '']
 
 data = data.reset_index(drop=True)
-# data.head()
+data.head()
 
 data2 = data.copy()
 data2 = data2.drop(['artist', 'name', 'year', 'popularity', 'key','duration_ms', 'mode', 'id'], axis=1)
 
-# data2.head()
+data2.head()
 
 from sklearn import preprocessing
 
@@ -163,24 +163,24 @@ data2 = pd.DataFrame(x_scaled)
 
 data2.columns = ['acousticness','danceability','energy','instrumentalness','loudness', 'liveness', 'speechiness', 'tempo','valence']
 
-# data2.describe()
+data2.describe()
 
 pca = PCA(n_components=2)
 pca.fit(data2)
 pca_data = pca.transform(data2)
 
 pca_df = pd.DataFrame(data=pca_data, columns=['x', 'y'])
-# pca_df.head()
+pca_df.head()
 
 fig = px.scatter(pca_df, x='x', y='y', title='PCA')
-# fig.show()
+fig.show()
 
 data2 = list(zip(pca_df['x'], pca_df['y']))
 
 kmeans = KMeans(n_init=10, max_iter=1000).fit(data2)
 
 fig = px.scatter(pca_df, x='x', y='y', color=kmeans.labels_, color_continuous_scale='rainbow', hover_data=[data.artist, data.name])
-# fig.show()
+fig.show()
 
 def dataProcessing():
     data = pd.read_csv('dataset.csv')
