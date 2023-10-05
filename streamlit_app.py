@@ -10,6 +10,7 @@ import json
 import csv
 from sklearn import preprocessing
 
+
 client_id = 'f177c75faa7d4fba999b81b922c1a042'
 client_secret = '46d8af627ab54f5a9462a50a6505ee6e'
 playlistId = '0IN7IWKmIfwlEysGyWUuRg'
@@ -17,6 +18,7 @@ playlistId = '0IN7IWKmIfwlEysGyWUuRg'
 dataset = []
 dataset2 = []
 dataset3 = []
+
 
 def getToken():
     auth_string = client_id + ':' + client_secret
@@ -39,51 +41,10 @@ def getToken():
 
     return token
 
+
 def getAuthHeader(token):
     return {'Authorization': 'Bearer ' + token}
 
-def dataProcessing():
-    data = pd.read_csv('dataset.csv')
-    data
-    st.write("## Preprocessing Result")
-
-    data = data[['artist', 'name', 'year', 'popularity', 'key', 'mode', 'duration_ms', 'acousticness',
-                'danceability', 'energy', 'instrumentalness', 'loudness', 'liveness', 'speechiness', 'tempo', 'valence']]
-    data = data.drop(['mode'], axis=1)
-    data['artist'] = data['artist'].map(lambda x: str(x)[2:-1])
-    data['name'] = data['name'].map(lambda x: str(x)[2:-1])
-    st.write("### Data to be deleted:")
-    data[data['name'] == '']
-    data = data[data['name'] != '']
-
-    st.write("## Normalization Result")
-    data2 = data.copy()
-    data2 = data2.drop(
-        ['artist', 'name', 'year', 'popularity', 'key', 'duration_ms'], axis=1)
-    x = data2.values
-    min_max_scaler = preprocessing.MinMaxScaler()
-    x_scaled = min_max_scaler.fit_transform(x)
-    data2 = pd.DataFrame(x_scaled)
-    data2.columns = ['acousticness', 'danceability', 'energy', 'instrumentalness',
-                     'loudness', 'liveness', 'speechiness', 'tempo', 'valence']
-    data2
-
-    st.write("## Dimensionality Reduction with PCA")
-    pca = PCA(n_components=2)
-    pca.fit(data2)
-    pca_data = pca.transform(data2)
-    pca_df = pd.DataFrame(data=pca_data, columns=['x', 'y'])
-    fig = px.scatter(pca_df, x='x', y='y', title='PCA')
-    st.plotly_chart(fig)
-
-    st.write("## Clustering with K-Means")
-    data2 = list(zip(pca_df['x'], pca_df['y']))
-    kmeans = KMeans(n_init=10, max_iter=1000).fit(data2)
-    fig = px.scatter(pca_df, x='x', y='y', color=kmeans.labels_,
-                     color_continuous_scale='rainbow', hover_data=[data.artist, data.name])
-    st.plotly_chart(fig)
-
-    st.write("Enjoy!")
 
 def getAudioFeatures(token, trackId):
 
@@ -157,8 +118,6 @@ def getPlaylistItems(token, playlistId):
 
     for i in range(len(dataset)):
         dataset3.append(dataset[i]+dataset2[i])
-
-    print(dataset3)
     
     with open('dataset.csv', 'w', newline='') as file:
         writer = csv.writer(file)
@@ -168,68 +127,56 @@ def getPlaylistItems(token, playlistId):
 
     dataProcessing()
 
-token = getToken() 
-print('access token : '+token) 
-getPlaylistItems(token, playlistId)
 
-import pandas as pd
-import numpy as np
+def dataProcessing():
+    data = pd.read_csv('dataset.csv')
+    data
+    st.write("## Preprocessing Result")
 
-from sklearn.cluster import KMeans
-from sklearn.decomposition import PCA
+    data = data[['artist', 'name', 'year', 'popularity', 'key', 'mode', 'duration_ms', 'acousticness',
+                'danceability', 'energy', 'instrumentalness', 'loudness', 'liveness', 'speechiness', 'tempo', 'valence']]
+    data = data.drop(['mode'], axis=1)
+    data['artist'] = data['artist'].map(lambda x: str(x)[2:-1])
+    data['name'] = data['name'].map(lambda x: str(x)[2:-1])
+    st.write("### Data to be deleted:")
+    data[data['name'] == '']
+    data = data[data['name'] != '']
 
-import plotly.express as px 
+    st.write("## Normalization Result")
+    data2 = data.copy()
+    data2 = data2.drop(
+        ['artist', 'name', 'year', 'popularity', 'key', 'duration_ms'], axis=1)
+    x = data2.values
+    min_max_scaler = preprocessing.MinMaxScaler()
+    x_scaled = min_max_scaler.fit_transform(x)
+    data2 = pd.DataFrame(x_scaled)
+    data2.columns = ['acousticness', 'danceability', 'energy', 'instrumentalness',
+                     'loudness', 'liveness', 'speechiness', 'tempo', 'valence']
+    data2
 
-data = pd.read_csv('dataset.csv')
-data.head()
+    st.write("## Dimensionality Reduction with PCA")
+    pca = PCA(n_components=2)
+    pca.fit(data2)
+    pca_data = pca.transform(data2)
+    pca_df = pd.DataFrame(data=pca_data, columns=['x', 'y'])
+    fig = px.scatter(pca_df, x='x', y='y', title='PCA')
+    st.plotly_chart(fig)
 
-data['artist'] = data['artist'].map(lambda x: str(x)[2:-1])
-data['name'] = data['name'].map(lambda x: str(x)[2:-1])
+    st.write("## Clustering with K-Means")
+    data2 = list(zip(pca_df['x'], pca_df['y']))
+    kmeans = KMeans(n_init=10, max_iter=1000).fit(data2)
+    fig = px.scatter(pca_df, x='x', y='y', color=kmeans.labels_,
+                     color_continuous_scale='rainbow', hover_data=[data.artist, data.name])
+    st.plotly_chart(fig)
 
-data.head()
+    st.write("Enjoy!")
 
-data = data[data['name'] != '']
-
-data = data.reset_index(drop=True)
-data.head()
-
-data2 = data.copy()
-data2 = data2.drop(['artist', 'name', 'year', 'popularity', 'key','duration_ms', 'mode', 'id'], axis=1)
-
-data2.head()
-
-from sklearn import preprocessing
-
-x = data2.values 
-min_max_scaler = preprocessing.MinMaxScaler()
-x_scaled = min_max_scaler.fit_transform(x)
-data2 = pd.DataFrame(x_scaled)
-
-data2.columns = ['acousticness','danceability','energy','instrumentalness','loudness', 'liveness', 'speechiness', 'tempo','valence']
-
-data2.describe()
-
-pca = PCA(n_components=2)
-pca.fit(data2)
-pca_data = pca.transform(data2)
-
-pca_df = pd.DataFrame(data=pca_data, columns=['x', 'y'])
-pca_df.head()
-
-fig = px.scatter(pca_df, x='x', y='y', title='PCA')
-fig.show()
-
-data2 = list(zip(pca_df['x'], pca_df['y']))
-
-kmeans = KMeans(n_init=10, max_iter=1000).fit(data2)
-
-fig = px.scatter(pca_df, x='x', y='y', color=kmeans.labels_, color_continuous_scale='rainbow', hover_data=[data.artist, data.name])
-fig.show()
 
 st.write("# Spotify Playlist Clustering")
 client_id = st.text_input("Enter Client ID")
 client_secret = st.text_input("Enter Client Secret")
 playlistId = st.text_input("Enter Playlist ID")
+
 
 if st.button('Create Dataset!'):
     token = getToken()
